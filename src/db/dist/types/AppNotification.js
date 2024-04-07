@@ -18,7 +18,7 @@ exports.AppNotification = void 0;
 var snowflake_1 = require("../db/utils/snowflake");
 var AppNotification = /** @class */ (function () {
     function AppNotification(_a) {
-        var date = _a.date, initiator = _a.initiator, receiver = _a.receiver, meetup = _a.meetup, type = _a.type, read = _a.read, _id = _a._id;
+        var date = _a.date, initiator = _a.initiator, receiver = _a.receiver, meetup = _a.meetup, type = _a.type, read = _a.read, _id = _a._id, buttonHREF = _a.buttonHREF;
         this.date = date ? date : new Date();
         this.initiator = initiator ? initiator : "";
         this.receiver = receiver ? receiver : "";
@@ -26,6 +26,7 @@ var AppNotification = /** @class */ (function () {
         this.type = type;
         this.read = read ? read : false;
         this._id = _id ? _id : (0, snowflake_1.generateSnowflake)();
+        this.buttonHREF = buttonHREF ? buttonHREF : "";
     }
     // Converts a Notification instance to a JSON object
     AppNotification.prototype.toJSON = function () {
@@ -33,10 +34,11 @@ var AppNotification = /** @class */ (function () {
             _id: this._id,
             date: this.date,
             initiator: this.initiator,
-            reciever: this.receiver,
+            receiver: this.receiver,
             meetup: this.meetup,
             type: this.type,
             read: this.read,
+            buttonHREF: this.buttonHREF
         };
     };
     return AppNotification;

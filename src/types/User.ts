@@ -11,6 +11,7 @@ interface UserParams {
     notifications?: string[];
     theme?: "light" | "dark" | "system";
     verified?: boolean;
+    friends?: string[];
 }
 
 class User {
@@ -23,8 +24,9 @@ class User {
     notifications: string[]; // Array of notification ids
     theme: "light" | "dark" | "system" = "system"; // User's preferred theme
     verified: boolean; // Whether the user has verified their email
+    friends: string[]; // Array of user ids
 
-    constructor({username, email, password, meetups, _id, avatar, notifications, theme, verified}: UserParams) {
+    constructor({username, email, password, meetups, _id, avatar, notifications, theme, verified, friends}: UserParams) {
         this._id = _id ? _id : generateSnowflake();
         this.username = username;
         this.email = email;
@@ -34,6 +36,7 @@ class User {
         this.notifications = notifications ? notifications : [];
         this.theme = theme? theme : "system";
         this.verified = verified ? verified : false;
+        this.friends = friends ? friends : [];
     }
 
     // Converts a User instance to a JSON object
@@ -47,7 +50,8 @@ class User {
             avatar: this.avatar,
             notifications: this.notifications,
             theme: this.theme,
-            verified: this.verified
+            verified: this.verified,
+            friends: this.friends
         };
     }
 }

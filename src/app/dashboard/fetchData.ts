@@ -1,4 +1,5 @@
 import { User } from '@/types';
+import {getUpcomingEvents} from "@/app/api/utils/eventFinder";
 
 interface fetchParams {
     status: string;

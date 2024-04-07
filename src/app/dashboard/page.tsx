@@ -55,10 +55,16 @@ export default function Dashboard() {
                             </Button>
                         </div>
                     </div>
-                    <div className="flex flex-col w-full p-4">
+                    <div className={meetups.length > 0 ? "flex flex-col w-full p-4" : "flex h-full w-full justify-center items-center"}>
                         { meetups.map((meetup, index) => (
                             <MeetupCard meetup={meetup} creator={user} small={true} key={index}/>
                         ))}
+                        { meetups.length == 0 &&
+                            <><div className="flex flex-col rounded-md w-auto h-auto p-4">
+                                <p className="text-2xl font-bold dark:text-white mb-4">No meetups :(</p>
+                                <Button color="primary" className="mt-2 w-full" onClick={() => router.push('/meetups/create')}>Create a meetup</Button>
+                            </div></>
+                        }
                         </div>
                 </div>
                 <div className="w-1/3 lg:h-full border-l dark:border-stone-800 dark:bg-stone-950 bg-stone-50 flex flex-col">
