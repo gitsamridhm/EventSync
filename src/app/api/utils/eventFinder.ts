@@ -1,11 +1,39 @@
-async function getUpcomingEventsHandler(location, interests) {
+interface Location {
+    latitude: number;
+    longitude: number;
+}
+
+interface Event {
+    title: string;
+    datetime_utc: string;
+    venue: Venue;
+    url: string;
+    stats: Stats;
+    type: string;
+}
+
+interface Venue {
+    name: string;
+    address: string;
+}
+
+interface Stats {
+    highest_price: number | null;
+    lowest_price: number | null;
+}
+
+interface ResponseData {
+    events: Event[];
+}
+
+async function getUpcomingEventsHandler(location: Location, interests: string[]): Promise<Event[]> {
     const endpoint = "https://api.seatgeek.com/2/events";
     const clientId = "NDA4Mjk2MDJ8MTcxMjQ0NzE4MC4xOTUxOA";
     const queryParams = new URLSearchParams({
         client_id: clientId,
-        lat: location.latitude,
-        lon: location.longitude,
-        per_page: 10
+        lat: location.latitude.toString(),
+        lon: location.longitude.toString(),
+        per_page: '10'
     });
     if (interests && interests.length > 0) {
         queryParams.set("q", interests.join(" "));
@@ -16,16 +44,20 @@ async function getUpcomingEventsHandler(location, interests) {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.json();
+        const data: ResponseData = await response.json();
         const events = data.events.map(event => ({
             title: event.title,
             datetime_utc: event.datetime_utc,
-            venue: event.venue.name,
+            venue: {
+                name: event.venue.name,
+                address: event.venue.address
+            },
             url: event.url,
-            venue_location: event.venue.address,
-            venue_type: event.type,
-            highest_price: event.stats.highest_price ? event.stats.highest_price : false,
-            lowest_price: event.stats.lowest_price ? event.stats.lowest_price : false
+            stats: {
+                highest_price: event.stats ? event.stats.highest_price : null,
+                lowest_price: event.stats ? event.stats.lowest_price : null
+            },
+            type: event.type
         }));
         return events;
     } catch (error) {
@@ -33,11 +65,11 @@ async function getUpcomingEventsHandler(location, interests) {
     }
 }
 
-export async function getUpcomingEvents(location: JSON, interests: Array<string>) {
+export async function getUpcomingEvents(location: Location, interests: string[]): Promise<Event[] | Error> {
     try {
         const upcomingEvents = await getUpcomingEventsHandler(location, interests);
-        return (upcomingEvents);
+        return upcomingEvents;
     } catch (error) {
-        return error;
+        return new Error("An error occurred while fetching upcoming events.");
     }
 }
