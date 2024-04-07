@@ -97,7 +97,7 @@ export default function Signup() {
                 <h2 className="text-black dark:text-white text-left text-3xl font-semibold mb-2">Sign Up</h2>
                 <p className="text-gray-400 text-left text-sm mb-4">
                     Already have an account?{' '}
-                    <a className="underline text-blue-500" onClick={() => router.push('/login')}>Login</a>
+                    <a className="underline text-blue-500 cursor-pointer" onClick={() => router.push('/login')}>Login</a>
                 </p>
                 <form onSubmit={handleSubmit}>
                     <div className="relative mb-[10px]">
