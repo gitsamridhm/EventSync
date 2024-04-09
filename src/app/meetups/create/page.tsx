@@ -17,12 +17,19 @@ export default function CreateMeetup() {
     const [time, setTime] = useState("");
     const [location, setLocation] = useState("");
     const [attendees, setAttendees] = useState<User[]>([]);
-    const [friends, setFriends] = useState<(User|null)[]>([null]);
+    const loadingUserObj = new User({
+        _id: "loading",
+        username: "",
+        email: "",
+        password: ""
+    });
+    const [friends, setFriends] = useState<(User)[]>([loadingUserObj]);
     const [loadingUser, setLoadingUser] = useState(true);
     const [userEmail, setUserEmail] = useState("");
     const [meetupCreationLoading, setMeetupCreationLoading] = useState<0 | 1 | 2>(0); // 0 = not started, 1 = loading, 2 = done
     const session = useSession();
     const router = useRouter();
+
 
     function createMeetup() {
         setMeetupCreationLoading(1)
@@ -58,6 +65,19 @@ export default function CreateMeetup() {
         }).then((data) => {
             data.json().then((user) => {
                 setUserEmail(user.email);
+                console.log(user.friends);
+                if (user.friends.length == 0) {
+                    const defaultFriendsUser = new User({
+                        _id: "0",
+                        username: "",
+                        email: "",
+                        password: ""
+                    })
+                    setFriends([
+                        defaultFriendsUser
+                    ])
+                    return;
+                }
                 const friendPromises = user.friends.map((friendID: string) => {
                     return fetch(`/api/user/${friendID}`, {
                         method: 'GET',
@@ -68,12 +88,14 @@ export default function CreateMeetup() {
                     }).then((res) => res.json());
                 });
 
-                Promise.all(friendPromises).then((friends) => {
-                    setFriends(friends);
+                Promise.all(friendPromises).then((friendsList) => {
+                    setFriends(friendsList);
                 });
             });
         });
         setLoadingUser(false);
+    } else if (session.status == "error"){
+        router.push("/login");
     }
 
 
