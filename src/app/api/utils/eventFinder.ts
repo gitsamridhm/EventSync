@@ -28,7 +28,7 @@ interface ResponseData {
 
 async function getUpcomingEventsHandler(location: Location, interests: string[]): Promise<Event[]> {
     const endpoint = "https://api.seatgeek.com/2/events";
-    const clientId = "NDA4Mjk2MDJ8MTcxMjQ0NzE4MC4xOTUxOA";
+    const clientId = process.env.SEATGEEK_CLIENT_ID || "";
     const queryParams = new URLSearchParams({
         client_id: clientId,
         lat: location.latitude.toString(),

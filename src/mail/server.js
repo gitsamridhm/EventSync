@@ -35,7 +35,7 @@ app.post("/send-verification-email", async (req, res) => {
         from: "EventSync <contact@eventsync.app>",
         to: userEmail,
         subject: 'EventSync Verification Code',
-        text: `Your verification code is: ${verificationCode}`,
+        html: `<div style="border-radius:15px;text-align:center;background:#262626;font-family:'Lato',sans-serif;color:white;padding-bottom:50px"> <br><div style="margin:40px auto auto;background:#292524;border-radius:10px;padding:20px;border:1px solid #0C0A09;max-width:800px"> <h1 style="font-weight:normal;line-height:10px">Your verification code is: <strong>${verificationCode}</strong></h1> <p style="color:gray;line-height:25px"> If you did not sign up, please ignore this email.<br><strong><span style="color:white">Event Sync</span></strong></p></div></div>`
     }
 
     await transporter.sendMail(mailOptions, (error, info) => {

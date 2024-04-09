@@ -79,8 +79,7 @@ export default function Login() {
                         </div>
                     </div>
                     <p className="text-red-500 text-sm mb-4">{error}</p>
-                    <p className="text-blue-500  mb-2 text-sm cursor-pointer">Forgot Password?</p>
-
+                    <p className="text-blue-500 mb-2 text-sm"><span className="cursor-pointer rounded">Forgot Password?</span></p>
                     <Button type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
                         Log In <ArrowLongRightIcon className="ml-4 w-6 h-6" />
                     </Button>
