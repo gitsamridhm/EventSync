@@ -65,7 +65,7 @@ export default function Signup() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, username }),
         }).then((res) => {
             res.json().then((data) => {
                 if (data.error) {
