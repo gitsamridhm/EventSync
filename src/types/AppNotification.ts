@@ -25,6 +25,7 @@ interface NotificationParams {
     type: number;
     read?: boolean;
     _id?: string;
+    buttonHREF?: string;
 }
 
 
@@ -36,8 +37,9 @@ class AppNotification {
     type: number;
     read: boolean;
     _id: string;
+    buttonHREF: string; // URL for the button in the notification
 
-    constructor({date, initiator, receiver, meetup, type, read, _id}: NotificationParams) {
+    constructor({date, initiator, receiver, meetup, type, read, _id, buttonHREF}: NotificationParams) {
         this.date = date? date : new Date();
         this.initiator = initiator? initiator : "";
         this.receiver = receiver? receiver : "";
@@ -45,6 +47,7 @@ class AppNotification {
         this.type = type;
         this.read = read? read : false;
         this._id = _id? _id : generateSnowflake();
+        this.buttonHREF = buttonHREF ? buttonHREF : "";
     }
 
     // Converts a Notification instance to a JSON object
@@ -53,10 +56,11 @@ class AppNotification {
             _id: this._id,
             date: this.date,
             initiator: this.initiator,
-            reciever: this.receiver,
+            receiver: this.receiver,
             meetup: this.meetup,
             type: this.type,
             read: this.read,
+            buttonHREF: this.buttonHREF
         };
     }
 }

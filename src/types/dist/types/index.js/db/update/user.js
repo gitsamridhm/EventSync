@@ -36,24 +36,23 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeetup = void 0;
+exports.updateUser = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
-function createMeetup(meetup) {
+// Updates a user in the database
+function updateUser(userID, update) {
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
+        var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
+                case 0: return [4 /*yield*/, connect_1.db.collection('users')];
                 case 1:
+                    users = _a.sent();
+                    return [4 /*yield*/, users.updateOne({ id: userID }, { $set: update })];
+                case 2:
                     _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    return [2 /*return*/];
             }
         });
     });
 }
-exports.createMeetup = createMeetup;
+exports.updateUser = updateUser;

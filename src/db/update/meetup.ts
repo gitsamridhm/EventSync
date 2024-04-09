@@ -4,7 +4,7 @@ import { db } from '../connect';
 
 async function updateMeetup(meetupID: string, update: any) : Promise<void> {
   const meetups = await db.collection('meetups');
-  await meetups.updateOne({ id: meetupID }, { $set: update });
+  await meetups.updateOne({ _id: meetupID }, update);
 }
 
 export { updateMeetup };

@@ -1,16 +1,10 @@
 import { Meetup } from "../../types";
 import { db } from "../connect";
+import {updateUser} from "../update/user";
 
 async function createMeetup(meetup: Meetup) {
     const meetups = db.collection('meetups');
-    const users = db.collection('users');
-
-    for (let i = 0; i < meetup.attendees.length; i++) {
-        const user = await users.findOne({ _id: meetup.attendees[i] });
-        const meetups = user.meetups;
-        meetups.push(meetup._id);
-        await users.updateOne({ _id: meetup.attendees[i] }, { $set: { meetups: meetups } });
-    }
+    await updateUser(meetup.creator, { $push: { meetups: meetup._id } });
 
     return await meetups.insertOne(meetup.toJSON());
 }

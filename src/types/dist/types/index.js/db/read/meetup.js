@@ -36,24 +36,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeetup = void 0;
+exports.getMeetup = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
-function createMeetup(meetup) {
+var types_1 = require("../../types");
+// Returns a meetup from the database
+function getMeetup(meetupID) {
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
+        var meetups, meetup;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
+                case 0: return [4 /*yield*/, connect_1.db.collection('meetups')];
                 case 1:
-                    _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    meetups = _a.sent();
+                    return [4 /*yield*/, meetups.findOne({ id: meetupID })];
+                case 2:
+                    meetup = _a.sent();
+                    if (!meetup) {
+                        return [2 /*return*/, null];
+                    }
+                    return [2 /*return*/, new types_1.Meetup(meetup)];
             }
         });
     });
 }
-exports.createMeetup = createMeetup;
+exports.getMeetup = getMeetup;

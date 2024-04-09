@@ -36,24 +36,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeetup = void 0;
+exports.deleteUser = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
-function createMeetup(meetup) {
+function deleteUser(userID) {
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
+        var users, meetups, user, meetupsList, i, meetup, attendees, index;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    users = connect_1.db.collection('users');
                     meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
+                    return [4 /*yield*/, users.findOne({ _id: userID })];
                 case 1:
+                    user = _a.sent();
+                    meetupsList = user.meetups;
+                    i = 0;
+                    _a.label = 2;
+                case 2:
+                    if (!(i < meetupsList.length)) return [3 /*break*/, 6];
+                    return [4 /*yield*/, meetups.findOne({ _id: meetupsList[i] })];
+                case 3:
+                    meetup = _a.sent();
+                    attendees = meetup.attendees;
+                    index = attendees.indexOf(userID);
+                    attendees.splice(index, 1);
+                    return [4 /*yield*/, meetups.updateOne({ _id: meetupsList[i] }, { $set: { attendees: attendees } })];
+                case 4:
                     _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    _a.label = 5;
+                case 5:
+                    i++;
+                    return [3 /*break*/, 2];
+                case 6: return [4 /*yield*/, users.deleteOne({ _id: userID })];
+                case 7: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
-exports.createMeetup = createMeetup;
+exports.deleteUser = deleteUser;

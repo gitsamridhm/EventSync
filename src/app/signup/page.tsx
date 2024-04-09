@@ -1,4 +1,6 @@
 "use client";
+import {Button} from "@nextui-org/react";
+
 require("dotenv").config({ path: ".env.local" });
 import { useState } from 'react';
 import { ArrowLongRightIcon, AtSymbolIcon, UserCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
@@ -19,11 +21,13 @@ export default function Signup() {
     const [verificationError, setVerificationError] = useState('');
     const [verificationCode, setVerificationCode] = useState('');
     const [userID, setUserID] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // POST request to /api/auth/signup
         e.preventDefault();
+
         if (password !== confirmPassword) {
             setError('Passwords do not match');
             return;
@@ -32,7 +36,7 @@ export default function Signup() {
             setError('Please fill in all fields');
             return;
         }
-
+        setIsLoading(true);
         fetch('/api/auth/signup', {
             method: 'POST',
             headers: {
@@ -42,6 +46,7 @@ export default function Signup() {
         })
             .then((res)=> {
                 res.json().then((data) => {
+                    setIsLoading(false);
                     if (data.error) {
                         setError(data.error);
                     } else {
@@ -55,7 +60,7 @@ export default function Signup() {
             });
     };
     function fetchVerificationCode(){
-        fetch(process.env.REACT_APP_MAIL_URL + '/send-verification-email', {
+        fetch(process.env.NEXT_PUBLIC_MAIL_URL + '/send-verification-email', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -149,9 +154,9 @@ export default function Signup() {
                         <LockClosedIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
                     </div>
                     <p className="text-red-500 text-sm mb-4">{error}</p>
-                    <button type="submit" className="w-full flex items-center justify-center bg-blue-500 filter drop-shadow-md text-white px-4 py-3 rounded-lg mb-[10px] cursor-pointer text-base">
+                    <Button type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
                         Signup <ArrowLongRightIcon className="ml-4 w-6 h-6" />
-                    </button>
+                    </Button>
                 </form>
             </div>
         </div>

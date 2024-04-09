@@ -36,24 +36,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeetup = void 0;
+exports.createUser = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
-function createMeetup(meetup) {
+function createUser(user) {
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
+        var users;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
-                case 1:
-                    _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    users = connect_1.db.collection('users');
+                    return [4 /*yield*/, users.insertOne(user.toJSON())];
+                case 1: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
-exports.createMeetup = createMeetup;
+exports.createUser = createUser;

@@ -50,6 +50,27 @@ app.post("/send-verification-email", async (req, res) => {
     });
 });
 
+app.post("/send-meetup-invite", async (req, res) => {
+    const {email, inviteLink, meetupName} = req.body;
+
+    const mailOptions = {
+        from: "EventSync <contact@eventsync.app>",
+        to: email,
+        subject: `EventSync Invite to ${meetupName}`,
+        text: `You have been invited to join the EventSync meetup ${meetupName}! Use the following link to join: ${inviteLink}`,
+    }
+
+    await transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+            res.send({message: "Error sending email"});
+        } else {
+            console.log('Email sent: ' + info.response);
+            res.send({message: "Success"});
+        }
+    });
+});
+
 app.listen(3001, () => {
     console.log('HTTPS Server running on port 443');
 });

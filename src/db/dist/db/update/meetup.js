@@ -47,7 +47,7 @@ function updateMeetup(meetupID, update) {
                 case 0: return [4 /*yield*/, connect_1.db.collection('meetups')];
                 case 1:
                     meetups = _a.sent();
-                    return [4 /*yield*/, meetups.updateOne({ id: meetupID }, { $set: update })];
+                    return [4 /*yield*/, meetups.updateOne({ _id: meetupID }, update)];
                 case 2:
                     _a.sent();
                     return [2 /*return*/];
