@@ -38,20 +38,32 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createMeetup = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
 function createMeetup(meetup) {
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
+        var meetups, users, i, user, meetups_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
+                    users = connect_1.db.collection('users');
+                    i = 0;
+                    _a.label = 1;
                 case 1:
+                    if (!(i < meetup.attendees.length)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, users.findOne({ _id: meetup.attendees[i] })];
+                case 2:
+                    user = _a.sent();
+                    meetups_1 = user.meetups;
+                    meetups_1.push(meetup._id);
+                    return [4 /*yield*/, users.updateOne({ _id: meetup.attendees[i] }, { $set: { meetups: meetups_1 } })];
+                case 3:
                     _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    _a.label = 4;
+                case 4:
+                    i++;
+                    return [3 /*break*/, 1];
+                case 5: return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
+                case 6: return [2 /*return*/, _a.sent()];
             }
         });
     });

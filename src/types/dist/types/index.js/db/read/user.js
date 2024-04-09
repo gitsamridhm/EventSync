@@ -36,24 +36,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMeetup = void 0;
+exports.getUser = void 0;
 var connect_1 = require("../connect");
-var user_1 = require("../update/user");
-function createMeetup(meetup) {
+var types_1 = require("../../types");
+function getUser(_a) {
+    var userID = _a.userID, email = _a.email, username = _a.username;
     return __awaiter(this, void 0, void 0, function () {
-        var meetups;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var filter, users, user;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    meetups = connect_1.db.collection('meetups');
-                    return [4 /*yield*/, (0, user_1.updateUser)(meetup.creator, { $push: { meetups: meetup._id } })];
+                    filter = {};
+                    if (!userID && !email && !username) {
+                        throw new Error("No user identifier provided");
+                    }
+                    else if (userID) {
+                        filter = { _id: userID };
+                    }
+                    else if (email) {
+                        filter = { email: email };
+                    }
+                    else if (username) {
+                        filter = { username: username };
+                    }
+                    return [4 /*yield*/, connect_1.db.collection('users')];
                 case 1:
-                    _a.sent();
-                    console.log(meetup.toJSON());
-                    return [4 /*yield*/, meetups.insertOne(meetup.toJSON())];
-                case 2: return [2 /*return*/, _a.sent()];
+                    users = _b.sent();
+                    return [4 /*yield*/, users.findOne(filter)];
+                case 2:
+                    user = _b.sent();
+                    if (!user) {
+                        return [2 /*return*/, null];
+                    }
+                    return [2 /*return*/, new types_1.User(user)];
             }
         });
     });
 }
-exports.createMeetup = createMeetup;
+exports.getUser = getUser;

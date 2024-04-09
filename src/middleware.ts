@@ -14,5 +14,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard', '/signout', '/friends', '/meetups', '/notifications', '/settings'],
+    matcher: ['/dashboard', '/signout', '/friends', '/meetups', '/notifications', '/settings', '/meetups/create', '/meetups/edit'],
 }
