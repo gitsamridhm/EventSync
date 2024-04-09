@@ -30,12 +30,13 @@ app.post("/send-verification-email", async (req, res) => {
     verificationCode = verificationCode.toString().slice(-5);
 
     const userEmail = req.body["email"];
-
+    const userName = req.body["username"];
+    
     const mailOptions = {
         from: "EventSync <contact@eventsync.app>",
         to: userEmail,
         subject: 'EventSync Verification Code',
-        html: `<div style="border-radius:15px;text-align:center;background:#262626;font-family:'Lato',sans-serif;color:white;padding-bottom:50px"> <br><div style="margin:40px auto auto;background:#292524;border-radius:10px;padding:20px;border:1px solid #0C0A09;max-width:800px"> <h1 style="font-weight:normal;line-height:10px">Your verification code is: <strong>${verificationCode}</strong></h1> <p style="color:gray;line-height:25px"> If you did not sign up, please ignore this email.<br><strong><span style="color:white">Event Sync</span></strong></p></div></div>`
+        html: `<div style="border-radius:15px;text-align:center;background:#111926;font-family:'Lato',sans-serif;color:white;padding-top:50px;padding-bottom:50px"> <img src="https://cdn.discordapp.com/attachments/1209232299288170597/1227091242710732920/Logo.png?ex=662724c6&is=6614afc6&hm=7c0ad357cd61ff661b500e90303559f3fce835d82f07570e02238afc972e7d80&" style="width:150px"> <br><div style="margin:40px auto auto;background:#1f2836;border-radius:10px;padding:20px;border:1px solid #374050;max-width:800px"> <h1 style="font-weight:normal;line-height:10px">Hello <strong>${userName}</strong>!</h1> <h3 style="font-weight:normal">Your Signup Code is: <strong>${verificationCode}</strong></h3> <p style="color:gray;line-height:25px"> You, or someone using your email, has signed up for Event Sync<br>If you did not sign up, please ignore this email. </p></div></div>`
     }
 
     await transporter.sendMail(mailOptions, (error, info) => {
