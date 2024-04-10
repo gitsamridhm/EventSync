@@ -55,7 +55,7 @@ export default function Dashboard() {
                             </Button>
                         </div>
                     </div>
-                    <div className={meetups.length > 0 ? "flex flex-col w-full p-4" : "flex h-full w-full justify-center items-center"}>
+                    <div className={meetups.length > 0 ? "flex overflow-y-scroll flex-col w-full h-full p-4" : "flex h-full w-full justify-center items-center"}>
                         { meetups.map((meetup, index) => (
                             <MeetupCard meetup={meetup} creator={user} small={true} key={index}/>
                         ))}
@@ -69,7 +69,7 @@ export default function Dashboard() {
                 </div>
                 <div className="w-1/3 lg:h-full border-l dark:border-stone-800 dark:bg-stone-950 bg-stone-50 flex flex-col">
                     <p className="dark:text-white text-2xl flex text-center font-bold bg-white dark:bg-transparent border-b dark:border-stone-800 p-4 py-5">Notifications</p>
-                    <div className="flex flex-col w-full p-4">
+                    <div className="flex flex-col w-full p-4 overflow-y-scroll">
                         { notifications.map((notification, index) => (
                             <NotificationCard notification={notification} meetup={notification?.meetup? meetups.find((meetup) => meetup?._id == notification.meetup) || null : null} initiator={notification?.initiator ? knownUsers.find((user) => user._id == notification.initiator) || null : null} key={index}/>
                         ))}

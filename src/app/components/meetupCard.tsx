@@ -11,7 +11,7 @@ export default function MeetupCard({ meetup, creator, small }: { meetup: Meetup 
     const startDate = meetup? new Date(meetup.date).toLocaleDateString() : '';
 
     return (
-        <Card className="max-w-600px mb-4">
+        <Card className="max-w-600px mb-4 overflow-visible">
             <CardBody>
                 <div className="flex flex-row space-x-4">
                     <Skeleton isLoaded={!!meetup} className="rounded-lg">
