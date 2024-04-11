@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     }
 
     password = await hashPassword(password);
-
-    const newUser = await createUser(new User({email, username, password}));
+    const newUser = new User({email, username, password});
+    await createUser(newUser);
 
     // Ensure JWT_SECRET is defined
     if (!process.env.JWT_SECRET) {

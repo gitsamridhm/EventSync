@@ -1,13 +1,14 @@
 "use client";
-import {Button} from "@nextui-org/react";
+import {Button, Skeleton} from "@nextui-org/react";
 
 require("dotenv").config({ path: ".env.local" });
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { ArrowLongRightIcon, AtSymbolIcon, UserCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import {useRouter} from "next13-progressbar";
 import Cookies from 'js-cookie';
 import useTheme from "@/app/components/utils/theme/updateTheme";
 import VerificationPage from "@/app/signup/verificationPage";
+import {useSearchParams} from "next/navigation";
 
 export default function Signup() {
     const [email, setEmail] = useState('');
@@ -23,7 +24,37 @@ export default function Signup() {
     const [userID, setUserID] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const [inviteData, setInviteData] = useState({} as any);
+    const [inviteError, setInviteError] = useState('' as string);
+    const [emailDisabled, setEmailDisabled] = useState(false);
 
+    useEffect(() => {
+        if (searchParams.has('meetupInvite')) {
+            const token = searchParams.get('meetupInvite');
+            fetch('/api/auth/verify', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            }).then((res) => {
+                res.json().then((data) => {
+                    if (data.error) {
+                        setInviteError("This invite is invalid or has expired");
+                    } else {
+                        if (data.data.type !== 'meetup-invitation') {
+                            setInviteError("This invite is invalid or has expired");
+                            return;
+                        }
+                        setEmail(data.data.userID);
+                        setEmailDisabled(true);
+                        setInviteData(data.data);
+                    }
+                });
+            });
+        }
+    }, [searchParams]);
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // POST request to /api/auth/signup
         e.preventDefault();
@@ -51,6 +82,26 @@ export default function Signup() {
                         setError(data.error);
                     } else {
                         // Redirect to dashboard
+                        if (inviteData){
+                            fetch(`/api/meetup/${inviteData.meetup}`,
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${data.token} `
+                                    },
+                                    body: JSON.stringify({'$push': { invited: data.id }})
+                                });
+                            fetch(`/api/meetup/${inviteData.meetup}`,
+                                {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${data.token} `
+                                    },
+                                    body: JSON.stringify({'$pull': { invited: email }})
+                                });
+                        }
                         Cookies.set('token', data.token);
                         setUserID(data.id);
                         setShowVerification(true);
@@ -86,11 +137,16 @@ export default function Signup() {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Cookies.get('token')} `
             },
             body: JSON.stringify({ "$set" : { verified: true } }),
 
         });
-        router.push('/dashboard');
+        if (searchParams.has("meetupInvite")) {
+            router.push(`/meetups/invite/${searchParams.get("meetupInvite")}`);
+        } else {
+            router.push('/dashboard');
+        }
     }
 
     if (showVerification){
@@ -99,14 +155,23 @@ export default function Signup() {
     return (
         <div className="flex justify-center items-center h-screen font-inter">
             <div className="w-[450px] p-6">
-                <h2 className="text-black dark:text-white text-left text-3xl font-semibold mb-2">Sign Up</h2>
+                { !inviteError || !searchParams.has("meetupInvite") ?
+                    searchParams.has("meetupInvite") && !inviteData ?
+                            <>
+                                <Skeleton className="w-full h-10 mb-2" />
+                                <Skeleton className="w-[4/5] h-10 mb-2" />
+                                <Skeleton className="w-[3/5] h-10 mb-4" />
+                                <Skeleton className="w-full h-10 mb-2" />
+                                <Skeleton className="w-full h-10" />
+                            </> :
+                    <><h2 className="text-black dark:text-white text-left text-3xl font-semibold mb-2">{ searchParams.has("meetupInvite") ? "Please sign up to accept this invite" : "Sign Up"}</h2>
                 <p className="text-gray-400 text-left text-sm mb-4">
-                    Already have an account?{' '}
+                    Already have an account?&nbsp;
                     <a className="underline text-blue-500 cursor-pointer" onClick={() => router.push('/login')}>Login</a>
                 </p>
                 <form onSubmit={handleSubmit}>
                     <div className="relative mb-[10px]">
-                        <input
+                        <input disabled={emailDisabled}
                             type="email"
                             placeholder="Email"
                             value={email}
@@ -157,7 +222,12 @@ export default function Signup() {
                     <Button type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
                         Signup <ArrowLongRightIcon className="ml-4 w-6 h-6" />
                     </Button>
-                </form>
+
+
+                </form></>
+                    : null }
+
+                {inviteError ? <p className="font-bold text-xl mb-4">{inviteError}</p> : null}
             </div>
         </div>
     );

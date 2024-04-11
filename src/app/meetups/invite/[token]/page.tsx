@@ -14,6 +14,7 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
     const [meetup, setMeetup] = useState<Meetup | null>(null);
     const [meetupCreator, setMeetupCreator] = useState<User | null>(null);
     const [loadingData, setLoadingData] = useState<boolean>(true);
+    const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -30,15 +31,31 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
                 })
             })
         }
-        if (session.status == "done" && tokenData && loadingData) {
+        if (!user && session.status == "done"){
+            fetch(`/api/user/${session.session.userID}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.session.token}`
+                }
+            }).then((data) => {
+                data.json().then((user) => {
+                    setUser(user);
+                })
+            });
+        }
+        if (session.status == "done" && tokenData && loadingData && user) {
             setLoadingData(false);
 
             if ("error" in tokenData || tokenData.data.type != "meetup-invitation") {
                 setInviteError("Invitation is invalid or expired");
-            } else if (tokenData.data.userID != session.session.userID) {
+            } else if (!tokenData.data.userID.includes('@') && tokenData.data.userID != session.session.userID) {
                 setInviteError("This invitation is not for you");
             } else {
-
+                if (tokenData.data.userID.includes('@') && tokenData.data.userID != user.email){
+                    setInviteError("This invitation is not for you");
+                    return;
+                }
                 fetch(`/api/meetup/${tokenData.data.meetup}`, {
                     method: 'GET',
                     headers: {
@@ -52,6 +69,7 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
                             return;
                         }
                         if (!meetup.invited.includes(session.session.userID) && !meetup.unavailable.includes(session.session.userID) && !meetup.attendees.includes(session.session.userID)) {
+
                             setInviteError("You already responded to this invitation");
                             return;
                         }
@@ -73,7 +91,7 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
         } else if (session.status == "error"){
             router.push("/login")
         }
-    }, [loadingData, params.token, session.session.token, session.session.userID, session.status, setTokenData, tokenData]);
+    }, [user, loadingData, params.token, router, session.session.token, session.session.userID, session.status, setTokenData, tokenData]);
 
 
     function acceptInvite(){
