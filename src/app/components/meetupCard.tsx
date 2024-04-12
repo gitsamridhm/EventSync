@@ -3,12 +3,14 @@ import { Meetup, User } from "@/types";
 import {Button, Avatar, Skeleton, Image} from "@nextui-org/react";
 import {Card, CardBody, CardHeader} from "@nextui-org/card";
 import {Divider} from "@nextui-org/divider";
+import {useRouter} from "next13-progressbar";
 
 
 export default function MeetupCard({ meetup, creator, small }: { meetup: Meetup | null, creator: User | null, small: boolean}){
 
     const startTime = meetup? new Date(meetup.date).toLocaleTimeString() : '';
     const startDate = meetup? new Date(meetup.date).toLocaleDateString() : '';
+    const router = useRouter();
 
     return (
         <Card className="max-w-600px mb-4 overflow-visible">
@@ -33,18 +35,24 @@ export default function MeetupCard({ meetup, creator, small }: { meetup: Meetup 
                             <Skeleton isLoaded={!!creator} className={!creator? "w-6 h-6 rounded-full" : ""}></Skeleton>
                             {creator ?<Avatar isBordered radius="sm" src="https://i.pravatar.cc/150?u=a042581f4e29026024d" className="w-6 h-6 text-tiny"  /> : null}
                         </div>
-                            <Divider className="mt-1"/>
-                        </div>
 
+                        </div>
+                        { meetup ?
                         <div className="flex flex-row w-full justify-end">
+
                             <Button color="primary" variant="flat" className="mr-2">
                                 <p>Edit</p>
                             </Button>
-                            <Button color="primary">
+                            <Button color="primary" onClick={() => router.push('/meetups/'+meetup._id)}>
                                 <p>View</p>
                             </Button>
 
                         </div>
+                            :
+                        <div className="w-full"><Skeleton className="w-full h-5 mt-4 rounded-md"/>
+                            <Skeleton className="w-full h-5 mt-1 rounded-md"/>
+                        </div>}
+
 
                     </div>
                 </div>

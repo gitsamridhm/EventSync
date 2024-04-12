@@ -1,54 +1,31 @@
-import { User } from '@/types';
+import {Meetup, User, AppNotification} from '@/types';
 import {getUpcomingEvents} from "@/app/api/utils/eventFinder";
 
 interface fetchParams {
-    status: string;
-    setLoadingUser: any;
-    setLoadingMeetups: any,
-    setLoadingNotifications: any;
-    loadingUser: boolean;
     session: any;
-    setUser: any;
     setKnownUsers: any;
-    setUserTheme: any;
     user: any;
-    loadingNotifications: boolean;
     setNotifications: any;
     knownUsers: any;
-    loadingMeetups: boolean;
     setMeetups: any;
+    meetups: (Meetup | null)[],
+    notifications: (AppNotification | null)[],
     router: any;
-
+    status: string;
 }
 
-export default function fetchData({status, setLoadingUser, setLoadingMeetups, setLoadingNotifications, loadingUser, session, setUser, setKnownUsers, setUserTheme, user, loadingNotifications, setNotifications, knownUsers, loadingMeetups, setMeetups, router} : fetchParams){
-    if (status == "done" && loadingUser) {
-        setLoadingUser(false);
-        fetch(`/api/user/${session.userID}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.token}`
-            }
-        }).then((data) => {
-            data.json().then((user) => {
-                setUser(user);
-                setKnownUsers((prev: any) => [...prev, user]);
-                setUserTheme(user.theme);
-            });
-        });
-    } else if (status == "error") {
-        if (typeof window !== 'undefined') {
-            router.push('/login');
-        }
-    }
+export default function fetchData({session, setKnownUsers, user, setNotifications, knownUsers, setMeetups, meetups, notifications, router, status} : fetchParams){
+    if (!user) return;
+    if (!knownUsers.includes(user)) setKnownUsers((prev: any) => [...prev, user]);
 
-    if (user && loadingNotifications) {
-        setLoadingNotifications(false);
+    if (status == 'error') {
+        router.push('/login?redirect=/dashboard');
+        return;
+    }
+    if (status != 'done') return;
+
+    if (user.notifications && notifications.includes(null)) {
         setNotifications([]);
-        if (!user.notifications) {
-            return;
-        }
         user.notifications.forEach((notificationID: string) => {
             fetch(`/api/notification/${notificationID}`, {
                 method: 'GET',
@@ -80,38 +57,42 @@ export default function fetchData({status, setLoadingUser, setLoadingMeetups, se
         });
     }
 
-    if (user && loadingMeetups) {
-        setLoadingMeetups(false);
-        setMeetups([]);
-        if (!user.meetups) {
-            return;
-        }
-        user.meetups.forEach((meetupID: string) => {
-            fetch(`/api/meetup/${meetupID}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.token}`
+
+    if (!user.meetups || !meetups.includes(null)){
+        return;
+    }
+
+    setMeetups([]);
+    user.meetups.forEach((meetupID: string) => {
+        fetch(`/api/meetup/${meetupID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.token}`
+            }
+        }).then((res) => {
+            res.json().then((meetup) => {
+                if ('error' in meetup) {
+                    router.push('/login?redirect=/dashboard');
+                    return;
                 }
-            }).then((res) => {
-                res.json().then((meetup) => {
-                    setMeetups((prev: any) => [...prev, meetup]);
-                    if (knownUsers.find((user: User) => user._id == meetup.creator)) {
-                        return;
+                setMeetups((prev: any) => [...prev, meetup]);
+                if (knownUsers.find((user: User) => user._id == meetup.creator)) {
+                    return;
+                }
+                fetch(`/api/user/${meetup.creator}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.token}`
                     }
-                    fetch(`/api/user/${meetup.creator}`, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session.token}`
-                        }
-                    }).then((res) => {
-                        res.json().then((creator) => {
-                            setKnownUsers((prev: any) => [...prev, creator]);
-                        });
+                }).then((res) => {
+                    res.json().then((creator) => {
+                        setKnownUsers((prev: any) => [...prev, creator]);
                     });
                 });
             });
         });
-    }
+    });
+
 }

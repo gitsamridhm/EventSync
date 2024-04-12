@@ -9,6 +9,7 @@ import UserTooltip from "@/app/components/userTooltip";
 import {useState} from "react";
 import { Skeleton, Accordion, AccordionItem, Image } from "@nextui-org/react";
 import { useRouter } from 'next13-progressbar';
+
 export default function Sidebar({ active, user } : { active: string, user: User | null}) {
     let [tooltip, setTooltip] = useState(false);
     const router = useRouter();

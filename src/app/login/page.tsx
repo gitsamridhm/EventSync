@@ -4,6 +4,7 @@ import { UserCircleIcon, EyeIcon, EyeSlashIcon, LockClosedIcon, ArrowLongRightIc
 import useTheme from "@/app/components/utils/theme/updateTheme";
 import Cookies from 'js-cookie';
 import { useRouter } from "next13-progressbar";
+import { useSearchParams } from "next/navigation";
 import {Button} from "@nextui-org/react";
 
 
@@ -15,6 +16,7 @@ export default function Login() {
     const [theme, setTheme] = useTheme();
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const urlSearchParams = useSearchParams();
     const router = useRouter();
 
     const handleSubmit = (e: { preventDefault: () => void; })  => {
@@ -36,6 +38,10 @@ export default function Login() {
                     } else {
                         // Redirect to dashboard
                         Cookies.set('token', data.token);
+                        if (urlSearchParams.has('redirect')) {
+                            router.push(urlSearchParams.get('redirect') || '/dashboard');
+                            return;
+                        }
                         router.push('/dashboard')
                     }
                 });

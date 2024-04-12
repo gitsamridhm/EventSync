@@ -8,7 +8,13 @@ import verifyJWT from "@/app/api/utils/verifyJWT";
 export async function GET(request: NextRequest, { params } : {params: {meetup: string}}) {
     const headersInstance = headers();
     const authorization = headersInstance.get('authorization');
-    const data = verifyJWT(authorization);
+    let data;
+
+    try {
+        data = verifyJWT(authorization);
+    } catch (e) {
+        return NextResponse.json({error: e})
+    }
 
     if ("error" in data) {
         return NextResponse.json({error: data.error})

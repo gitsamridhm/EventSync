@@ -7,6 +7,7 @@ import verifyJWT from "@/app/api/utils/verifyJWT";
 export async function GET(request: NextRequest, { params } : {params: {id: string}}) {
     const headersInstance = headers();
     const authorization = headersInstance.get('authorization');
+
     const data = verifyJWT(authorization);
 
     if ("error" in data) {
