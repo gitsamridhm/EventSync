@@ -9,12 +9,14 @@ import { createContext, useState, useEffect } from 'react';
 import {usePathname} from 'next/navigation';
 import {User} from "@/types";
 import useUserTheme from "@/app/components/utils/theme/updateTheme";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const userContext = createContext<User | null>(null);
 
 const PROTECTED_ROUTES = ['/dashboard', '/friends', '/meetups', '/notifications', '/settings', '/meetups/create', '/meetups/edit']
 export function Providers({children}: { children: React.ReactNode }) {
     const router = useRouter();
+
     const session = useSession();
     const [user, setUser] = useState<User | null>(null);
     const pathname = usePathname();
@@ -22,6 +24,15 @@ export function Providers({children}: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Only fetch user data if the route is protected
+        if (pathname == "/login" && user){
+            router.push("/dashboard");
+            return;
+        }
+
+        if (pathname == "/signout") {
+            setUser(null);
+        }
+
         if (!PROTECTED_ROUTES.map((route) => pathname.startsWith(route)).includes(true)) return;
 
         if (session.status == "error") {
@@ -49,10 +60,12 @@ export function Providers({children}: { children: React.ReactNode }) {
     return (
         <NextUIProvider navigate={router.push}>
             <NextThemesProvider attribute="class" defaultTheme="dark">
-                <userContext.Provider value={user}>
-                    {children}
-                    <Next13ProgressBar height="4px" color="#0A2FFF" options={{ showSpinner: true }} showOnShallow />
-                </userContext.Provider>
+                <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string}>
+                    <userContext.Provider value={user}>
+                        {children}
+                        <Next13ProgressBar height="4px" color="#0A2FFF" options={{ showSpinner: true }} showOnShallow />
+                    </userContext.Provider>
+                </GoogleOAuthProvider>
             </NextThemesProvider>
         </NextUIProvider>
     )
