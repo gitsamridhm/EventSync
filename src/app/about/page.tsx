@@ -100,7 +100,7 @@ function About() {
             <section className="text-center items-center mb-20">
                 <h1 className="text-3xl font-bold">Check out our <a className="text-blue-600 underline" href="https://www.linkedin.com/company/event-sync/">IOS App!</a></h1>
                 <div className="flex justify-around mt-[10vh]">
-                    <h1 className="text-2xl font-bold">Comming Soon...</h1>
+                    <h1 className="text-2xl font-bold">Coming Soon...</h1>
                 </div>
             </section>
 
