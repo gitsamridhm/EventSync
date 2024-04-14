@@ -11,8 +11,15 @@ import {User} from "@/types";
 import useUserTheme from "@/app/components/utils/theme/updateTheme";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const userContext = createContext<User | null>(null);
+type UserWithUpdate = {
+    user: User | null;
+    updateUser: () => Promise<void>;
+};
 
+const userContext = createContext<UserWithUpdate>({
+    user: null,
+    updateUser: async () => {},
+});
 const PROTECTED_ROUTES = ['/dashboard', '/friends', '/meetups', '/notifications', '/settings', '/meetups/create', '/meetups/edit']
 export function Providers({children}: { children: React.ReactNode }) {
     const router = useRouter();
@@ -22,6 +29,21 @@ export function Providers({children}: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [theme, setTheme] = useUserTheme();
 
+    const updateUser = async () => {
+        fetch(`/api/user/${session.session.userID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.session.token}`
+            },
+        }).then((data) => {
+            data.json().then((userData) => {
+                if ("error" in userData) return;
+                setUser(userData);
+                setTheme(userData.theme);
+            });
+        });
+    }
     useEffect(() => {
         // Only fetch user data if the route is protected
         if (pathname == "/login" && user){
@@ -61,7 +83,7 @@ export function Providers({children}: { children: React.ReactNode }) {
         <NextUIProvider navigate={router.push}>
             <NextThemesProvider attribute="class" defaultTheme="dark">
                 <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string}>
-                    <userContext.Provider value={user}>
+                    <userContext.Provider value={{user, updateUser}}>
                         {children}
                         <Next13ProgressBar height="4px" color="#0A2FFF" options={{ showSpinner: true }} showOnShallow />
                     </userContext.Provider>

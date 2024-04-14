@@ -2,14 +2,16 @@
 import {defaultUser, User} from "@/types";
 import Sidebar from "@/app/components/sidebar";
 import {Breadcrumbs, BreadcrumbItem} from "@nextui-org/react";
-import {useState} from "react";
+import {useContext, useState} from "react";
 import CreateMeetupStep1 from "@/app/components/create-meetup/createMeetupStep1";
 import CreateMeetupStep2 from "@/app/components/create-meetup/createMeetupStep2";
 import CreateMeetupStep3 from "@/app/components/create-meetup/createMeetupStep3";
 import useSession from "@/app/components/utils/sessionProvider";
 import {useRouter} from "next13-progressbar";
+import {userContext} from "@/app/providers";
 
 export default function CreateMeetup() {
+    const {user, updateUser} = useContext(userContext);
     const [step, setStep] = useState(1);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
@@ -50,6 +52,7 @@ export default function CreateMeetup() {
         }).then((data) => {
             data.json().then((meetup) => {
                 setMeetupCreationLoading(2);
+                updateUser();
                 router.push(`/meetups/${meetup._id}`)
             })
         });
@@ -106,7 +109,7 @@ export default function CreateMeetup() {
 
     return (
         <div className="flex flex-row bg-neutral-100 dark:bg-black h-screen w-screen">
-            <Sidebar user={defaultUser} active="notifications"/>
+            <Sidebar user={user} active="notifications"/>
             <div className="flex flex-col h-screen w-full">
                 <div className="flex flex-row p-4 justify-between items-center dark:border-stone-800 dark:bg-stone-950 border-b">
                     <h1 className="text-2xl font-bold ">Create a Meetup</h1>

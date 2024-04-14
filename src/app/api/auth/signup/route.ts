@@ -10,6 +10,9 @@ import {createUser} from "@/db/create/user";
 import {getUser} from "@/db/read/user";
 import {User} from "@/types";
 import hashPassword from "@/app/api/utils/hashPassword";
+import {db} from "@/db/connect";
+import {createNotification} from "@/db/create/notification";
+import {updateMeetup} from "@/db/update/meetup";
 
 export async function POST(request: NextRequest) {
     let {email, username, password} = await request.json();
@@ -28,6 +31,18 @@ export async function POST(request: NextRequest) {
 
     password = await hashPassword(password);
     const newUser = new User({email, username, password});
+
+    // TODO: Find all meetups where the user is invited and create notifications
+
+    const meetupCollection = db.collection('meetups');
+    const meetups = await meetupCollection.find({invited: email}).toArray();
+
+    for (const meetup of meetups) {
+        // TODO: Create notification
+        await updateMeetup(meetup._id, {$pull: {invited: email}});
+        await updateMeetup(meetup._id, {$push: {invited: newUser._id}});
+    }
+
     await createUser(newUser);
 
     // Ensure JWT_SECRET is defined

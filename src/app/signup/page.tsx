@@ -2,20 +2,20 @@
 import {Button, Skeleton} from "@nextui-org/react";
 
 require("dotenv").config({ path: ".env.local" });
-import {useEffect, useState} from 'react';
+import {useEffect, useState, Suspense} from 'react';
 import { ArrowLongRightIcon, AtSymbolIcon, UserCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import {useRouter} from "next13-progressbar";
 import Cookies from 'js-cookie';
 import useTheme from "@/app/components/utils/theme/updateTheme";
 import VerificationPage from "@/app/signup/verificationPage";
 import {useSearchParams} from "next/navigation";
+import {useGoogleLogin} from "@react-oauth/google";
 
-export default function Signup() {
+function SignupComponent() {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [theme, setTheme] = useTheme();
     const [error, setError] = useState('');
     const [showVerification, setShowVerification] = useState(false);
     const [code, setCode] = useState('');
@@ -28,6 +28,54 @@ export default function Signup() {
     const [inviteData, setInviteData] = useState({} as any);
     const [inviteError, setInviteError] = useState('' as string);
     const [emailDisabled, setEmailDisabled] = useState(false);
+
+    const [googleLoading, setGoogleLoading] = useState(false);
+
+
+    function signupWithGoogle() {
+        setGoogleLoading(true);
+        googleSignup();
+    }
+    const googleSignup = useGoogleLogin({
+        flow: "auth-code",
+
+        onSuccess: codeResponse => {
+            fetch(process.env.NEXT_PUBLIC_GOOGLE_URL+'/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: codeResponse.code, inviteEmail: inviteData ? inviteData.userID : null}),
+            })
+                .then((res) => {
+                    res.json().then((data) => {
+                        setGoogleLoading(false);
+                        if (data.error) {
+                            setError(data.error);
+                        } else {
+                            // Redirect to dashboard
+
+                            Cookies.set('token', data.token);
+                            if (searchParams.has('meetupInvite')){
+                                updateMeetupInvite(data);
+                                router.push('/meetups/invite/'+searchParams.get('meetupInvite'));
+                                return;
+                            }
+                            if (searchParams.has('redirect')) {
+                                router.push(searchParams.get('redirect') || '/dashboard');
+                                return;
+                            }
+                            router.push('/dashboard')
+                        }
+                    });
+                });
+
+        },
+        onError: error => {
+            setError(error.error ? error.error : "An error occurred")
+            setGoogleLoading(false);
+        }
+    });
 
     useEffect(() => {
         if (searchParams.has('meetupInvite')) {
@@ -47,14 +95,35 @@ export default function Signup() {
                             setInviteError("This invite is invalid or has expired");
                             return;
                         }
-                        setEmail(data.data.userID);
-                        setEmailDisabled(true);
-                        setInviteData(data.data);
+                        if (!data.data.userID.includes('@')){
+                            setInviteError("You already have an account. Please use the original invite link");
+                            return;
+                        }
+                        // Check if user exists
+                        // If user exists, redirect to meetup invite page
+                        // If user does not exist, show signup form
+                        fetch(`/api/user/find`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email: data.data.userID }),
+                        }).then((res) => {
+                            res.json().then((userData) => {
+                                if (userData.error) {
+                                    setEmail(data.data.userID);
+                                    setEmailDisabled(true);
+                                    setInviteData(data.data);
+                                } else {
+                                    router.push('/meetups/invite/'+token);
+                                }
+                            });
+                        });
                     }
                 });
             });
         }
-    }, [searchParams]);
+    }, [router, searchParams]);
     const handleSubmit = (e: { preventDefault: () => void; }) => {
         // POST request to /api/auth/signup
         e.preventDefault();
@@ -83,24 +152,7 @@ export default function Signup() {
                     } else {
                         // Redirect to dashboard
                         if (inviteData){
-                            fetch(`/api/meetup/${inviteData.meetup}`,
-                                {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${data.token} `
-                                    },
-                                    body: JSON.stringify({'$push': { invited: data.id }})
-                                });
-                            fetch(`/api/meetup/${inviteData.meetup}`,
-                                {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${data.token} `
-                                    },
-                                    body: JSON.stringify({'$pull': { invited: email }})
-                                });
+                            updateMeetupInvite(data);
                         }
                         Cookies.set('token', data.token);
                         setUserID(data.id);
@@ -147,6 +199,27 @@ export default function Signup() {
         } else {
             router.push('/dashboard');
         }
+    }
+
+    function updateMeetupInvite(data: any) {
+        fetch(`/api/meetup/${inviteData.meetup}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${data.token} `
+                },
+                body: JSON.stringify({'$push': {invited: data.id}})
+            });
+        fetch(`/api/meetup/${inviteData.meetup}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${data.token} `
+                },
+                body: JSON.stringify({'$pull': {invited: email}})
+            });
     }
 
     if (showVerification){
@@ -222,6 +295,10 @@ export default function Signup() {
                     <Button type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
                         Signup <ArrowLongRightIcon className="ml-4 w-6 h-6" />
                     </Button>
+                    <p className="text-center text-xs mt-4 uppercase font-bold text-stone-400 ">Or continue with</p>
+                    <Button isIconOnly type="button" onClick={signupWithGoogle} className="p-1 w-10 h-10 bg-white flex items-center justify-center filter drop-shadow-md text-black rounded-lg cursor-pointer mt-2" isLoading={googleLoading}>
+                        <img className="w-full h-full" src="/google_icon.svg" alt="Google"/>
+                    </Button>
 
 
                 </form></>
@@ -230,5 +307,21 @@ export default function Signup() {
                 {inviteError ? <p className="font-bold text-xl mb-4">{inviteError}</p> : null}
             </div>
         </div>
+    );
+}
+
+export default function Signup() {
+    return (
+        <Suspense fallback={
+            <div className="w-[400px] h-[400px]">
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-[4/5] h-5 mb-1" />
+                <Skeleton className="w-full h-5 mb-4" />
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-full h-5" />
+            </div>
+        }>
+            <SignupComponent />
+        </Suspense>
     );
 }

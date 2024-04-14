@@ -4,7 +4,7 @@ const { google } = require('googleapis');
 const jwt = require("jsonwebtoken");
 const { OAuth2Client, UserRefreshClient } = google.auth;
 const cors = require('cors');
-const { getUser, updateUser, createUser } = require('../db');
+const { getUser, updateUser, createUser, updateMeetup, db } = require('../db');
 const { User } = require('../types/dist/types/index.js/types/index');
 
 
@@ -25,7 +25,10 @@ app.post('/auth/google', async (req, res) => {
     oAuth2Client.setCredentials(tokens);
     const oauth2 = google.oauth2({ version: 'v2', auth: oAuth2Client });
     const { data } = await oauth2.userinfo.get();
-    console.log(data);
+
+    if (req.body.inviteEmail && req.body.inviteEmail !== data.email) {
+        return res.status(401).json({error: `Please use ${req.body.inviteEmail} to signup and accept this invite`});
+    }
     // Check if user exists in database
     // If user exists, update tokens
     // If user does not exist, create user with tokens
@@ -71,11 +74,23 @@ app.post('/auth/google', async (req, res) => {
             },
             verified: true,
         });
+
+        // TODO: Find all meetups where the user is invited and create notifications
+
+        const meetupCollection = db.collection('meetups');
+        const meetups = await meetupCollection.find({invited: newUser.email}).toArray();
+
+        for (const meetup of meetups) {
+            // TODO: Create notification
+            await updateMeetup(meetup._id, {$pull: {invited: newUser.email}});
+            await updateMeetup(meetup._id, {$push: {invited: newUser._id}});
+        }
+
         await createUser(newUser);
         const token = jwt.sign({ userID: newUser._id, type: 'user' }, process.env.JWT_SECRET, {
             expiresIn: '100m',
         });
-        return res.json({token});
+        return res.json({token: token, id: newUser._id});
     }
 });
 

@@ -1,23 +1,24 @@
 "use client";
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { UserCircleIcon, EyeIcon, EyeSlashIcon, LockClosedIcon, ArrowLongRightIcon } from "@heroicons/react/24/solid";
 import useTheme from "@/app/components/utils/theme/updateTheme";
 import Cookies from 'js-cookie';
 import { useRouter } from "next13-progressbar";
 import { useSearchParams } from "next/navigation";
 import { useGoogleLogin } from "@react-oauth/google";
-import {Button} from "@nextui-org/react";
+import {Button, Skeleton} from "@nextui-org/react";
 
 
 
-export default function Login() {
+function LoginComponent() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [theme, setTheme] = useTheme();
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const urlSearchParams = useSearchParams();
+    let params = useSearchParams();
+
     const [googleLoading, setGoogleLoading] = useState(false);
     const router = useRouter();
 
@@ -44,8 +45,8 @@ export default function Login() {
                         } else {
                             // Redirect to dashboard
                             Cookies.set('token', data.token);
-                            if (urlSearchParams.has('redirect')) {
-                                router.push(urlSearchParams.get('redirect') || '/dashboard');
+                            if (params.has('redirect')) {
+                                router.push(params.get('redirect') || '/dashboard');
                                 return;
                             }
                             router.push('/dashboard')
@@ -80,8 +81,8 @@ export default function Login() {
                         // Redirect to dashboard
                         Cookies.set('token', data.token);
 
-                        if (urlSearchParams.has('redirect')) {
-                            router.push(urlSearchParams.get('redirect') || '/dashboard');
+                        if (params.has('redirect')) {
+                            router.push(params.get('redirect') || '/dashboard');
                             return;
                         }
                         router.push('/dashboard')
@@ -138,5 +139,21 @@ export default function Login() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function Login() {
+    return (
+        <Suspense fallback={
+            <div className="w-[400px] h-[400px]">
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-[4/5] h-5 mb-1" />
+                <Skeleton className="w-full h-5 mb-4" />
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-full h-5" />
+            </div>
+        }>
+            <LoginComponent />
+        </Suspense>
     );
 }
