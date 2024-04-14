@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
             } else {
                 meetup.invited = meetup.invited.filter((invitedUser) => invitedUser !== attendee);
-                meetup.attendees.push(user._id);
+                meetup.invited.push(user._id);
                 await notifyUser(meetup, user)
             }
         } else {
