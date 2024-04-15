@@ -4,7 +4,7 @@ import { updateUser } from "@/db/update/user";
 import { deleteUser } from "@/db/delete/user";
 import {headers} from "next/headers";
 import verifyJWT from "@/app/api/utils/verifyJWT";
-import {User} from "@/types";
+
 
 export async function GET(request: NextRequest, { params } : {params: {id: string}}) {
     // Make sure request is authorized

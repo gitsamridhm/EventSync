@@ -1,20 +1,21 @@
 "use client";
 import useSession from "@/app/components/utils/sessionProvider";
 import Sidebar from "@/app/components/sidebar";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useContext} from "react";
+import {userContext} from "@/app/providers";
 import {defaultUser, Meetup, User} from "@/types";
 import {Button, Skeleton} from "@nextui-org/react";
 import { useRouter } from 'next13-progressbar';
 import { Avatar } from "@nextui-org/react";
 
 export default function MeetupInvite({ params }: { params: { token: string } }){
+    const {user, updateUser} = useContext(userContext);
     const session = useSession();
     const [tokenData, setTokenData] = useState<any>(null);
     const [inviteError, setInviteError] = useState<string>("");
     const [meetup, setMeetup] = useState<Meetup | null>(null);
     const [meetupCreator, setMeetupCreator] = useState<User | null>(null);
     const [loadingData, setLoadingData] = useState<boolean>(true);
-    const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -30,19 +31,6 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
                     setTokenData(tokenData);
                 })
             })
-        }
-        if (!user && session.status == "done"){
-            fetch(`/api/user/${session.session.userID}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.session.token}`
-                }
-            }).then((data) => {
-                data.json().then((user) => {
-                    setUser(user);
-                })
-            });
         }
         if (session.status == "done" && tokenData && loadingData && user) {
             setLoadingData(false);
@@ -69,7 +57,6 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
                             return;
                         }
                         if (!meetup.invited.includes(session.session.userID) && !meetup.unavailable.includes(session.session.userID) && !meetup.attendees.includes(session.session.userID)) {
-
                             setInviteError("You already responded to this invitation");
                             return;
                         }
@@ -88,8 +75,6 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
                     })
                 });
             }
-        } else if (session.status == "error"){
-            router.push("/login")
         }
     }, [user, loadingData, params.token, router, session.session.token, session.session.userID, session.status, setTokenData, tokenData]);
 
@@ -139,6 +124,8 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
         });
 
         Promise.all([meetupUpdate, notificationCreate, userUpdate]).then(() => {
+            // update user context
+            updateUser();
             router.push(`/meetups/${meetup._id}`);
         })
     }
@@ -177,10 +164,10 @@ export default function MeetupInvite({ params }: { params: { token: string } }){
     }
 
 
-    // TODO: Improve UI for invitation
+
     return (
         <div className="flex flex-row bg-neutral-100 dark:bg-black h-screen w-screen">
-            <Sidebar user={defaultUser} active="meetups"/>
+            <Sidebar user={user} active="meetups"/>
             <div className="flex flex-col w-full h-full">
                 <div className="flex flex-row p-4 justify-between items-center dark:border-stone-800 dark:bg-stone-950 border-b">
                     <h1 className="text-2xl font-bold ">Meetup Invitation</h1>

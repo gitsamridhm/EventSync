@@ -5,7 +5,7 @@ import {useRouter} from "next13-progressbar";
 import useSession from "@/app/components/utils/sessionProvider";
 
 export default function useDashboardState() {
-    const user = useContext(userContext);
+    const {user, updateUser} = useContext(userContext);
     const [meetups, setMeetups] = useState<(Meetup | null)[]>([null, null, null, null]);
     const [search, setSearch] = useState('');
     const [knownUsers, setKnownUsers] = useState<User[]>([]);

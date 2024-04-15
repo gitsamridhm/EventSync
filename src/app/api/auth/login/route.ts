@@ -19,7 +19,12 @@ export async function POST(request: NextRequest) {
         }
     }
 
+
     const hashedPassword = user.password; //get pass
+
+    if (!hashedPassword) {
+        return NextResponse.json({ "error": "Please login with your provider and create a password to use email login" });
+    }
 
     const passwordMatch = await checkPassword(password, hashedPassword); //pass check
     if (!passwordMatch) {

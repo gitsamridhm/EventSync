@@ -1,23 +1,65 @@
 "use client";
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { UserCircleIcon, EyeIcon, EyeSlashIcon, LockClosedIcon, ArrowLongRightIcon } from "@heroicons/react/24/solid";
 import useTheme from "@/app/components/utils/theme/updateTheme";
 import Cookies from 'js-cookie';
 import { useRouter } from "next13-progressbar";
 import { useSearchParams } from "next/navigation";
-import {Button} from "@nextui-org/react";
+import { useGoogleLogin } from "@react-oauth/google";
+import {Button, Skeleton} from "@nextui-org/react";
 
 
 
-export default function Login() {
+function LoginComponent() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [theme, setTheme] = useTheme();
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const urlSearchParams = useSearchParams();
+    let params = useSearchParams();
+
+    const [googleLoading, setGoogleLoading] = useState(false);
     const router = useRouter();
+
+    function loginWithGoogle() {
+        setGoogleLoading(true);
+        googleLogin();
+    }
+    const googleLogin = useGoogleLogin({
+        flow: "auth-code",
+
+        onSuccess: codeResponse => {
+            fetch(process.env.NEXT_PUBLIC_GOOGLE_URL+'/auth/google', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code: codeResponse.code }),
+            })
+                .then((res) => {
+                    res.json().then((data) => {
+                        setGoogleLoading(false);
+                        if (data.error) {
+                            setError(data.error);
+                        } else {
+                            // Redirect to dashboard
+                            Cookies.set('token', data.token);
+                            if (params.has('redirect')) {
+                                router.push(params.get('redirect') || '/dashboard');
+                                return;
+                            }
+                            router.push('/dashboard')
+                        }
+                    });
+                });
+
+        },
+        onError: error => {
+            setError(error.error ? error.error : "An error occurred")
+            setGoogleLoading(false);
+        }
+    });
 
     const handleSubmit = (e: { preventDefault: () => void; })  => {
         // POST request to /api/auth/signup
@@ -38,8 +80,9 @@ export default function Login() {
                     } else {
                         // Redirect to dashboard
                         Cookies.set('token', data.token);
-                        if (urlSearchParams.has('redirect')) {
-                            router.push(urlSearchParams.get('redirect') || '/dashboard');
+
+                        if (params.has('redirect')) {
+                            router.push(params.get('redirect') || '/dashboard');
                             return;
                         }
                         router.push('/dashboard')
@@ -86,11 +129,31 @@ export default function Login() {
                     </div>
                     <p className="text-red-500 text-sm mb-4">{error}</p>
                     <p className="text-blue-500 mb-2 text-sm"><span className="cursor-pointer rounded">Forgot Password?</span></p>
-                    <Button type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
+                    <Button disabled={!username || !password} type="submit"  className="w-full bg-blue-500 flex items-center justify-center filter drop-shadow-md text-white px-4 py-3 rounded-lg cursor-pointer text-base" isLoading={isLoading}>
                         Log In <ArrowLongRightIcon className="ml-4 w-6 h-6" />
+                    </Button>
+                    <p className="text-center text-xs mt-4 uppercase font-bold text-stone-400 ">Or continue with</p>
+                    <Button isIconOnly type="button" onClick={loginWithGoogle} className="p-1 w-10 h-10 bg-white flex items-center justify-center filter drop-shadow-md text-black rounded-lg cursor-pointer mt-2" isLoading={googleLoading}>
+                        <img className="w-full h-full" src="/google_icon.svg" alt="Google"/>
                     </Button>
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function Login() {
+    return (
+        <Suspense fallback={
+            <div className="w-[400px] h-[400px]">
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-[4/5] h-5 mb-1" />
+                <Skeleton className="w-full h-5 mb-4" />
+                <Skeleton className="w-full h-5 mb-1" />
+                <Skeleton className="w-full h-5" />
+            </div>
+        }>
+            <LoginComponent />
+        </Suspense>
     );
 }

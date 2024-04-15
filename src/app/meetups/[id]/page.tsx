@@ -39,7 +39,7 @@ export default function MeetupProfile({ params }: { params: { id: string } }) {
               </div>
               <h2>
                 [description] we will be meeting at the golden gate bridge
-                first, then we'll walk to the park.
+                first, then we&apos;ll walk to the park.
               </h2>
               <div className="mt-6">
                 <div className="flex">
@@ -110,7 +110,7 @@ export default function MeetupProfile({ params }: { params: { id: string } }) {
                     console.log("clicked 'I'm coming'!");
                   }}
                 >
-                  I'm coming
+                  I&apos;m coming
                 </Button>
                 <Button
                   color="primary"
@@ -121,7 +121,7 @@ export default function MeetupProfile({ params }: { params: { id: string } }) {
                     console.log("clicked 'I'm not coming'!");
                   }}
                 >
-                  I'm not coming
+                  I&apos;m not coming
                 </Button>
               </div>
             </div>
